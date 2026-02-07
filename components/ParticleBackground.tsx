@@ -42,6 +42,7 @@ export default function ParticleBackground({
       opacity: number;
 
       constructor() {
+        if (!canvas) return;
         this.x = Math.random() * canvas.width;
         this.y = Math.random() * canvas.height;
         this.size = Math.random() * maxSize + 1;
@@ -51,6 +52,7 @@ export default function ParticleBackground({
       }
 
       update() {
+        if (!canvas) return;
         this.x += this.speedX;
         this.y += this.speedY;
 
@@ -81,6 +83,7 @@ export default function ParticleBackground({
     // Animation loop
     let animationFrameId: number;
     const animate = () => {
+      if (!canvas || !ctx) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       particles.forEach((particle) => {
