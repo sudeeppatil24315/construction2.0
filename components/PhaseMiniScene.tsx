@@ -1,35 +1,55 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
+import { detectDeviceCapabilities, getLODSettings, getGeometrySegments, getOptimalDPR } from '@/lib/device-detector';
 
 interface PhaseMiniSceneProps {
   phaseId: number;
   isActive: boolean;
+  quality?: '2d-fallback' | '3d-low' | '3d-medium' | '3d-high';
 }
 
-export default function PhaseMiniScene({ phaseId, isActive }: PhaseMiniSceneProps) {
+export default function PhaseMiniScene({ phaseId, isActive, quality }: PhaseMiniSceneProps) {
+  const [deviceCaps, setDeviceCaps] = useState(() => detectDeviceCapabilities());
+  const effectiveQuality = quality || deviceCaps.recommendedQuality;
+  const lodSettings = getLODSettings(effectiveQuality, deviceCaps.devicePixelRatio);
+  const optimalDPR = getOptimalDPR();
+
+  useEffect(() => {
+    setDeviceCaps(detectDeviceCapabilities());
+  }, []);
+
   return (
     <div className="w-full h-48 rounded-lg overflow-hidden bg-gray-950">
       <Canvas
         camera={{ position: [3, 3, 3], fov: 50 }}
-        gl={{ antialias: true, alpha: true }}
+        gl={{ 
+          antialias: lodSettings.antialias, 
+          alpha: true,
+          powerPreference: deviceCaps.isMobile ? 'low-power' : 'default',
+        }}
+        dpr={optimalDPR}
       >
         <ambientLight intensity={0.3} />
-        <pointLight position={[10, 10, 10]} intensity={0.8} />
-        <pointLight position={[-10, -10, -10]} intensity={0.3} color="#D4AF37" />
+        {lodSettings.maxLights >= 2 && (
+          <>
+            <pointLight position={[10, 10, 10]} intensity={0.8} />
+            <pointLight position={[-10, -10, -10]} intensity={0.3} color="#D4AF37" />
+          </>
+        )}
         
-        {phaseId === 0 && <PreDesignScene isActive={isActive} />}
-        {phaseId === 1 && <DesignScene isActive={isActive} />}
-        {phaseId === 2 && <PlanningScene isActive={isActive} />}
-        {phaseId === 3 && <ExecutionScene isActive={isActive} />}
+        {phaseId === 0 && <PreDesignScene isActive={isActive} lodSettings={lodSettings} />}
+        {phaseId === 1 && <DesignScene isActive={isActive} lodSettings={lodSettings} />}
+        {phaseId === 2 && <PlanningScene isActive={isActive} lodSettings={lodSettings} />}
+        {phaseId === 3 && <ExecutionScene isActive={isActive} lodSettings={lodSettings} />}
         
         <OrbitControls
           enableZoom={false}
           enablePan={false}
-          autoRotate={isActive}
+          autoRotate={isActive && !deviceCaps.isMobile}
           autoRotateSpeed={2}
           minPolarAngle={Math.PI / 4}
           maxPolarAngle={Math.PI / 2}
@@ -40,8 +60,9 @@ export default function PhaseMiniScene({ phaseId, isActive }: PhaseMiniSceneProp
 }
 
 // Pre-Design Phase: Survey equipment and site markers
-function PreDesignScene({ isActive }: { isActive: boolean }) {
+function PreDesignScene({ isActive, lodSettings }: { isActive: boolean; lodSettings: any }) {
   const groupRef = useRef<THREE.Group>(null);
+  const segments = getGeometrySegments(lodSettings.geometryDetail);
 
   useFrame((state) => {
     if (groupRef.current && isActive) {
@@ -66,11 +87,11 @@ function PreDesignScene({ isActive }: { isActive: boolean }) {
       ].map((pos, i) => (
         <group key={i} position={pos as [number, number, number]}>
           <mesh position={[0, 0.3, 0]}>
-            <cylinderGeometry args={[0.05, 0.05, 0.6, 8]} />
+            <cylinderGeometry args={[0.05, 0.05, 0.6, segments.cylinder[0]]} />
             <meshStandardMaterial color="#D4AF37" metalness={0.8} roughness={0.2} />
           </mesh>
           <mesh position={[0, 0.65, 0]}>
-            <coneGeometry args={[0.1, 0.15, 4]} />
+            <coneGeometry args={[0.1, 0.15, segments.cone]} />
             <meshStandardMaterial color="#ff4444" emissive="#ff0000" emissiveIntensity={0.5} />
           </mesh>
         </group>
@@ -86,7 +107,7 @@ function PreDesignScene({ isActive }: { isActive: boolean }) {
 }
 
 // Design Phase: Blueprint and 3D model
-function DesignScene({ isActive }: { isActive: boolean }) {
+function DesignScene({ isActive, lodSettings }: { isActive: boolean; lodSettings: any }) {
   const groupRef = useRef<THREE.Group>(null);
   const blueprintRef = useRef<THREE.Mesh>(null);
 
@@ -127,11 +148,11 @@ function DesignScene({ isActive }: { isActive: boolean }) {
       {/* Pencil */}
       <group position={[0.8, 0.2, 0.5]} rotation={[0, 0, -Math.PI / 6]}>
         <mesh>
-          <cylinderGeometry args={[0.03, 0.03, 0.8, 6]} />
+          <cylinderGeometry args={[0.03, 0.03, 0.8, lodSettings.geometryDetail === 'low' ? 4 : 6]} />
           <meshStandardMaterial color="#ffcc00" />
         </mesh>
         <mesh position={[0, 0.42, 0]}>
-          <coneGeometry args={[0.03, 0.1, 6]} />
+          <coneGeometry args={[0.03, 0.1, lodSettings.geometryDetail === 'low' ? 4 : 6]} />
           <meshStandardMaterial color="#333333" />
         </mesh>
       </group>
@@ -140,7 +161,7 @@ function DesignScene({ isActive }: { isActive: boolean }) {
 }
 
 // Planning Phase: Calendar, documents, and checklist
-function PlanningScene({ isActive }: { isActive: boolean }) {
+function PlanningScene({ isActive, lodSettings }: { isActive: boolean; lodSettings: any }) {
   const groupRef = useRef<THREE.Group>(null);
   const pagesRef = useRef<THREE.Group>(null);
 
@@ -176,7 +197,7 @@ function PlanningScene({ isActive }: { isActive: boolean }) {
         [0.4, 0.4, 0.4],
       ].map((pos, i) => (
         <mesh key={i} position={pos as [number, number, number]}>
-          <torusGeometry args={[0.08, 0.02, 8, 16]} />
+          <torusGeometry args={[0.08, 0.02, lodSettings.geometryDetail === 'low' ? 6 : 8, lodSettings.geometryDetail === 'low' ? 12 : 16]} />
           <meshStandardMaterial color="#00ff00" emissive="#00ff00" emissiveIntensity={0.3} />
         </mesh>
       ))}
@@ -191,9 +212,10 @@ function PlanningScene({ isActive }: { isActive: boolean }) {
 }
 
 // Execution Phase: Construction site with crane and building
-function ExecutionScene({ isActive }: { isActive: boolean }) {
+function ExecutionScene({ isActive, lodSettings }: { isActive: boolean; lodSettings: any }) {
   const groupRef = useRef<THREE.Group>(null);
   const craneRef = useRef<THREE.Group>(null);
+  const segments = getGeometrySegments(lodSettings.geometryDetail);
 
   useFrame((state) => {
     if (craneRef.current && isActive) {
@@ -234,7 +256,7 @@ function ExecutionScene({ isActive }: { isActive: boolean }) {
       <group ref={craneRef} position={[1.2, 0, 0]}>
         {/* Crane base */}
         <mesh position={[0, 0.3, 0]}>
-          <cylinderGeometry args={[0.15, 0.2, 0.6, 8]} />
+          <cylinderGeometry args={[0.15, 0.2, 0.6, segments.cylinder[0]]} />
           <meshStandardMaterial color="#ff6600" />
         </mesh>
 
@@ -246,7 +268,7 @@ function ExecutionScene({ isActive }: { isActive: boolean }) {
 
         {/* Hook */}
         <mesh position={[0.3, 0.5, 0]}>
-          <cylinderGeometry args={[0.02, 0.02, 0.3, 8]} />
+          <cylinderGeometry args={[0.02, 0.02, 0.3, segments.cylinder[0]]} />
           <meshStandardMaterial color="#333333" />
         </mesh>
       </group>
@@ -257,7 +279,7 @@ function ExecutionScene({ isActive }: { isActive: boolean }) {
         [1, 0, -1],
       ].map((pos, i) => (
         <mesh key={i} position={pos as [number, number, number]}>
-          <coneGeometry args={[0.1, 0.2, 8]} />
+          <coneGeometry args={[0.1, 0.2, segments.cone]} />
           <meshStandardMaterial
             color="#ff6600"
             emissive="#ff3300"

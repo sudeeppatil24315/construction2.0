@@ -5,6 +5,7 @@ import { PROJECTS } from '@/lib/constants';
 import { ProjectCategory } from '@/types';
 import ProjectCard from './ProjectCard';
 import ProjectModal from './ProjectModal';
+import { getContainerPaddingClasses, getSectionSpacingClasses } from '@/lib/breakpoints';
 
 const categories: { label: string; value: ProjectCategory | 'all' }[] = [
   { label: 'All Projects', value: 'all' },
@@ -28,26 +29,26 @@ export default function ProjectsShowcase() {
     : null;
 
   return (
-    <section id="projects" className="min-h-screen py-20 bg-gray-50">
-      <div className="container mx-auto px-4">
+    <section id="projects" className={`min-h-screen bg-gray-50 ${getSectionSpacingClasses()}`}>
+      <div className={`container mx-auto ${getContainerPaddingClasses()}`}>
         {/* Section Header */}
-        <div className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">
+        <div className="text-center mb-10 md:mb-12">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 md:mb-4">
             Our <span className="text-gold">Projects</span>
           </h2>
-          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+          <p className="text-gray-600 text-base sm:text-lg max-w-2xl mx-auto px-4">
             Explore our portfolio of completed projects showcasing excellence in construction
             and design across various sectors.
           </p>
         </div>
 
         {/* Category Filter */}
-        <div className="flex flex-wrap justify-center gap-4 mb-12">
+        <div className="flex flex-wrap justify-center gap-2 sm:gap-4 mb-10 md:mb-12 px-2">
           {categories.map((category) => (
             <button
               key={category.value}
               onClick={() => setSelectedCategory(category.value)}
-              className={`px-6 py-2 rounded-full font-semibold transition-all duration-300 ${
+              className={`px-4 sm:px-6 py-2 rounded-full font-semibold transition-all duration-300 text-sm sm:text-base ${
                 selectedCategory === category.value
                   ? 'bg-gold text-black shadow-lg scale-105'
                   : 'bg-white text-gray-700 hover:bg-gray-100 hover:scale-105'
@@ -59,7 +60,7 @@ export default function ProjectsShowcase() {
         </div>
 
         {/* Masonry Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 auto-rows-auto">
           {filteredProjects.map((project, index) => (
             <div
               key={project.id}
@@ -81,8 +82,8 @@ export default function ProjectsShowcase() {
 
         {/* Empty State */}
         {filteredProjects.length === 0 && (
-          <div className="text-center py-20">
-            <p className="text-gray-500 text-lg">No projects found in this category.</p>
+          <div className="text-center py-16 md:py-20">
+            <p className="text-gray-500 text-base sm:text-lg">No projects found in this category.</p>
           </div>
         )}
       </div>

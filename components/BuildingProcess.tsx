@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { BUILDING_PHASES } from '@/lib/constants';
 import { ProcessPhase } from '@/types';
 import { useReducedMotion } from '@/lib/animations';
+import ParallaxLayers from './ParallaxLayers';
 
 // Dynamically import 3D component to avoid SSR issues
 const PhaseMiniScene = dynamic(() => import('./PhaseMiniScene'), {
@@ -61,6 +62,9 @@ export default function BuildingProcess() {
       id="process"
       className="min-h-screen py-20 bg-black text-white relative overflow-hidden"
     >
+      {/* Parallax Background Layers */}
+      <ParallaxLayers />
+
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute top-0 left-0 w-full h-full bg-[linear-gradient(45deg,transparent_25%,#D4AF37_25%,#D4AF37_50%,transparent_50%,transparent_75%,#D4AF37_75%,#D4AF37)] bg-[length:60px_60px]"></div>

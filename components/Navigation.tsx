@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import { NavigationSection } from '@/types';
 import { smoothScrollTo } from '@/lib/utils';
 import { useReducedMotion, easings } from '@/lib/animations';
@@ -113,9 +114,23 @@ export default function Navigation({ sections }: NavigationProps) {
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <motion.div variants={logoVariants} className="flex-shrink-0">
-            <h1 className="text-2xl md:text-3xl font-bold text-gold">
-              SB INFRA
-            </h1>
+            <button
+              onClick={() => handleNavClick('hero')}
+              className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+              aria-label="SB Infra Projects Home"
+            >
+              <Image
+                src="/logo.png"
+                alt="SB Infra Projects Logo"
+                width={50}
+                height={50}
+                className="w-10 h-10 md:w-12 md:h-12 object-contain"
+                priority
+              />
+              <h1 className="text-xl md:text-2xl font-bold text-gold">
+                SB INFRA
+              </h1>
+            </button>
           </motion.div>
 
           {/* Desktop Navigation */}
