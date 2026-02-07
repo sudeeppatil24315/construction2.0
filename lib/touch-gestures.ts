@@ -349,16 +349,16 @@ export function preventDefaultTouchBehaviors(element: HTMLElement): void {
   
   // Prevent text selection on touch
   element.style.userSelect = 'none';
-  element.style.webkitUserSelect = 'none';
+  (element.style as any).webkitUserSelect = 'none';
   
   // Prevent tap highlight
-  element.style.webkitTapHighlightColor = 'transparent';
+  (element.style as any).webkitTapHighlightColor = 'transparent';
 }
 
 /**
  * Enable smooth scrolling with momentum on iOS
  */
 export function enableMomentumScrolling(element: HTMLElement): void {
-  element.style.webkitOverflowScrolling = 'touch';
+  (element.style as any).webkitOverflowScrolling = 'touch';
   element.style.overflowY = 'auto';
 }
