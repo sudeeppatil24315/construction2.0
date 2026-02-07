@@ -88,8 +88,8 @@ export default function ParticleSystem({
       <bufferGeometry>
         <bufferAttribute
           attach="attributes-position"
+          args={[particles.positions, 3]}
           count={count}
-          array={particles.positions}
           itemSize={3}
         />
       </bufferGeometry>
