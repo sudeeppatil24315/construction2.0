@@ -27,7 +27,7 @@ export default function CursorParticleTrail({
   const particlesRef = useRef<Particle[]>([]);
   const mouseRef = useRef({ x: 0, y: 0 });
   const [isMobile, setIsMobile] = useState(false);
-  const animationFrameRef = useRef<number>();
+  const animationFrameRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     // Check if device is mobile
